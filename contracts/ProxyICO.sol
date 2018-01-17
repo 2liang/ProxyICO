@@ -16,6 +16,7 @@ contract ProxyICO is Ownable {
 		uint 	least;			// 最小值
 		uint 	limit;			// 限量
 		uint 	investVolume;	// 已投资量
+		uint 	flag;			// 是否存在
 	}
 
 	mapping(address => (mapping(address => uint))) investors;
@@ -30,7 +31,7 @@ contract ProxyICO is Ownable {
 	 * 是否存在指定ICO
 	 */
 	modifier ICOExists(uint _index) { 
-		require(ICOPools[_index].contractAddr != 0x0);
+		require(ICOPools[_index].flag != 1);
 		_;
 	}
 
@@ -41,7 +42,6 @@ contract ProxyICO is Ownable {
 		require(ICOPools[_index].least <= msg.value);
 		_;
 	}
-	
 
 	/**
 	 * 获取项目数量
@@ -92,4 +92,57 @@ contract ProxyICO is Ownable {
 			revert(msg.sender.transfer(refundQueta));
 		}
 	}
+
+	/**
+	 * 获取某ICO是否可领取代币
+	 */
+	function isUnlock(uint _icoIndex) public ICOExists(_index) returns(bool) {
+		var icoRule = ICOPools[_index];
+		if (icoRule[contractAddr] == 0x0) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	/**
+	 * 提币
+	 */
+	function withdraw(uint _icoIndex) public ICOExists(_index) {
+
+		var icoRule = ICOPools[_index];
+		var contractAddr = icoRule.contractAddr;
+
+		// 判断是否已经设置了代币合约地址
+		assert(contractAddr != 0x0);	
+
+		// 判断是否投资该ICO
+		assert(investors[contractAddr][msg.sender] != 0);
+
+		// 投资额度
+		var investQuota = investors[contractAddr][msg.sender];
+		var tokenNum    = investQuota.mul(icoRule.ratio);
+
+		// 减掉代币
+		investors[contractAddr][msg.sender] = 0;
+
+		// 转移代币
+		contractAddr.transfer(msg.sender, tokenNum);
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
