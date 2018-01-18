@@ -2,12 +2,14 @@ pragma solidity ^0.4.17;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import 'zeppelin-solidity/contracts/token/ERC20.sol';
+
 /**
  * 单代投责任人合约
  */
 contract ProxyICO is Ownable {
 
-	using uint from SafeMath;
+	using SafeMath for uint;
 
 	struct ICORule {
 		string 	name;			// 代币名称
@@ -19,7 +21,7 @@ contract ProxyICO is Ownable {
 		uint 	flag;			// 是否存在
 	}
 
-	mapping(address => (mapping(address => uint))) investors;
+	mapping(address => mapping(address => uint)) investors;
 
 	ICORule[] ICOPools;		// 项目池子
 
@@ -53,33 +55,40 @@ contract ProxyICO is Ownable {
 	/**
 	 * 获取项目信息
 	 */
-	function getProjectInfo(uint256 _index) public view returns(string, address, uint) {
-		var icoRule = ICOPools[_index];
-		return (icoRule.name, icoRule.contractAddr, icoRule.ratio);
+	function getProjectInfo(uint256 _index) ICOExists(_index) public view returns(uint index, string name, address contractAddr, uint ratio, uint least, uint limit, uint investVolume) {
+		var icoRule 	= ICOPools[_index];
+		index 			= _index;
+		name 			= icoRule.name;
+		contractAddr 	= icoRule.contractAddr;
+		ratio 			= icoRule.ratio;
+		least 			= icoRule.least;
+		limit 			= icoRule.limit;
+		investVolume 	= icoRule.investVolume;
 	}
 
 	/**
 	 * 添加项目
 	 */
-	function addProject(string _name, address _tokenAddr, uint _ratio) public {
+	function addProject(string _name, address _tokenAddr, uint _ratio, uint _least, uint _limit) public returns(bool) {
 		// AddProject(msg.sender, name);
-		var temp = ICORule(_name, _tokenAddr, _ratio);
+		var temp = ICORule(_name, _tokenAddr, _ratio, _least, _limit, 0, 0);
 		ICOPools.push(temp);
 		projectNames.push(_name);
+		return true;
 	}
 
 	/**
 	 * 投资接口
 	 */
-	function investment(uint _icoIndex) payable public ICOExists(_index) gtLeast(_index) {
+	function investment(uint _index) payable public ICOExists(_index) gtLeast(_index) {
 		
 		var icoRule = ICOPools[_index];
 
 		var investQuota = msg.value;
-		var refundQueta = 0;
+		uint refundQueta = 0;
 		
 		// 当额度不足
-		if (investVolume > icoRule.limit.sub(icoRule.investVolume)) {
+		if (investQuota > icoRule.limit.sub(icoRule.investVolume)) {
 			// 获取能投资的额度
 			investQuota = icoRule.limit.sub(icoRule.investVolume);
 			// 退款额度
@@ -87,18 +96,19 @@ contract ProxyICO is Ownable {
 		}
 
 		investors[icoRule.contractAddr][msg.sender] = investQuota;
+		ICOPools[_index].investVolume.add(investQuota);
 
 		if (refundQueta > 0) {	// 退款
-			revert(msg.sender.transfer(refundQueta));
+			msg.sender.transfer(refundQueta);
 		}
 	}
 
 	/**
 	 * 获取某ICO是否可领取代币
 	 */
-	function isUnlock(uint _icoIndex) public ICOExists(_index) returns(bool) {
+	function isUnlock(uint _index) public view ICOExists(_index) returns(bool) {
 		var icoRule = ICOPools[_index];
-		if (icoRule[contractAddr] == 0x0) {
+		if (icoRule.contractAddr == 0x0) {
 			return false;
 		} else {
 			return true;
@@ -108,10 +118,12 @@ contract ProxyICO is Ownable {
 	/**
 	 * 提币
 	 */
-	function withdraw(uint _icoIndex) public ICOExists(_index) {
+	function withdraw(uint _index) public ICOExists(_index) {
 
 		var icoRule = ICOPools[_index];
 		var contractAddr = icoRule.contractAddr;
+
+		ERC20 token = ERC20(contractAddr);
 
 		// 判断是否已经设置了代币合约地址
 		assert(contractAddr != 0x0);	
@@ -127,7 +139,7 @@ contract ProxyICO is Ownable {
 		investors[contractAddr][msg.sender] = 0;
 
 		// 转移代币
-		contractAddr.transfer(msg.sender, tokenNum);
+		token.transfer(msg.sender, tokenNum);
 	}
 }
 

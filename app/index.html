@@ -1,28 +1,89 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>破可乐瓶子的代投小火车</title>
+	<title>破可乐瓶子的小火车</title>
 	<script type="text/javascript" src="./app.js"></script>
 </head>
 <body>
-<div class="content" style="width: 800px;margin:0 auto">
-	<input type="submit"  onclick="App.getProjectCount()" value="获取数量">
-	<br><br>
-	名称：<input type="text" id="name" value="hello"> 地址<input type="text" id="address" value=""> 比例<input type="text" id="">
+	<div class="main container">
+		<div class="page-header">
+		  	<h1>破可乐瓶子的小火车<small> 呜呜呜~快上车~</small></h1>
+		</div>
+		<div class="alert alert-danger alert-dismissible" role="alert" style="display: none;">
+		  	<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		  	<strong>Warning!</strong> <span class="danger-content">Better check yourself, you're not looking too good.</span>
+		</div>
+		<div class="content">
+			<div>
+				<nav class="navbar navbar-default">
+					<div class="container-fluid">
+					    <div class="navbar-header">
+					    <a class="navbar-brand" href="#">火车列表</a>
+						<p class="navbar-text">看看有什么火车</p>
+					</div>
+				</nav>
+		    	<table class="table">
+					<thead>
+			        	<tr><th>#</th><th>Project Name</th><th>ContractAddr</th><th>Limit</th><th>least</th><th>ratio</th><th>investVolume</th></tr>
+			      		<tbody class="project-list"></tbody>
+			      	</thead>
+				</table>
+		    </div>
 
-	<input type="submit" onclick="App.addProject()" value="添加">
-	<br><br>
-	<input type="submit" onclick="App.getProjectList()" value="获取列表">
-	<br>
-	<br>
-	<br>
-	<br>
-	<h3>投球</h3>
-	<label>篮筐：<input type="text" id="index" value=""></label><br>
-	<label>球数：<input type="text" id="value" value=""></label><br><br>
-	<label><input type="submit" id="index" value="投篮"></label><br>
-</div>
-
-
+			<div>
+				<nav class="navbar navbar-default">
+					<div class="container-fluid">
+					    <div class="navbar-header">
+					    <a class="navbar-brand" href="#">添加车次</a>
+						<p class="navbar-text">快快快</p>
+					</div>
+				</nav>
+				<div id="tip" class="alert alert-success" role="alert" style="display: none;">
+				  	<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				  	<span class="tip-content">Better check yourself, you're not looking too good.</span>
+				</div>
+				  <div class="form-group">
+				    <label for="exampleInputEmail1">车次</label>
+				    <input type="text" class="form-control" id="name" placeholder="车次">
+				  </div>
+				  <div class="form-group">
+				    <label for="exampleInputPassword1">车辆代码</label>
+				    <input type="text" class="form-control" id="address" placeholder="车辆代码">
+				  </div>
+				  <div class="form-group">
+				    <label for="exampleInputPassword1">比例</label>
+				    <input type="text" class="form-control" id="ratio" placeholder="比例">
+				  </div>
+				  <div class="form-group">
+				    <label for="exampleInputPassword1">最少</label>
+				    <input type="text" class="form-control" id="least" placeholder="最少">
+				  </div>
+				  <div class="form-group">
+				    <label for="exampleInputPassword1">限额</label>
+				    <input type="text" class="form-control" id="limit" placeholder="限额">
+				  </div>
+				  <button type="submit" class="btn btn-default" id="add" onclick="App.addProject()">Submit</button>
+		    </div>
+		    <br><br>
+		    <div>
+				<nav class="navbar navbar-default">
+					<div class="container-fluid">
+					    <div class="navbar-header">
+					    <a class="navbar-brand" href="#">我要上车</a>
+						<p class="navbar-text">先到下面买票</p>
+					</div>
+				</nav>
+		    	<div class="form-group">
+				    <label for="exampleInputEmail1">车次</label>
+				    <input type="text" class="form-control" id="index" placeholder="看看是几号车">
+				  </div>
+				  <div class="form-group">
+				    <label for="exampleInputPassword1">几张票</label>
+				    <input type="text" class="form-control" id="value" placeholder="没有半票啊">
+				  </div>
+				  <button type="submit" class="btn btn-default" id="add" onclick="App.inviteProject()">Submit</button>
+		    </div>
+		</div>
+	</div>
 </body>
 </html>

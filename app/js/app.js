@@ -1,20 +1,16 @@
-// import 'jquery/dist/jquery.min.css';
-// import 'bootstrap/dist/css/bootstrap.min.css';
-// import 'bootstrap/dist/js/bootstrap.min.js';
+import '../css/bootstrap.css';
+import 'jquery/dist/jquery.min.js';
 
 
 import {default as Web3} from 'web3';
 import {default as contract} from 'truffle-contract';
-import {default as BigNumber} from 'bignumber.js';
 
-import ProxyICOArtifacts from '../../build/contracts/ProxyICO.json';
+import ProxyContractArtifacts from '../../build/contracts/ProxyICO.json';
 
-var ProxyICO = contract(ProxyICOArtifacts);
-ProxyICO.setProvider(web3.currentProvider);
+var ProxyContract = contract(ProxyContractArtifacts);
+ProxyContract.setProvider(web3.currentProvider);
 
 var address;
-
-// console.log($.("#name").value());
 
 window.App = {
 
@@ -32,13 +28,14 @@ window.App = {
 	      }
 
 	      address = accs[0];
-	      console.log(accs);
 	    });
+
+	    this.getProjectList();
 	},
 
 	// 获取项目数量
 	getProjectCount: function() {
-		ProxyICO.deployed().then(function(instance) {
+		ProxyContract.deployed().then(function(instance) {
 			return instance.getProjectCount();
 		}).then(function(count) {
 			console.log(count.valueOf());
@@ -50,14 +47,20 @@ window.App = {
 	// 获取项目名称
 	getProjectList: function() {
 		var instance;
-		ProxyICO.deployed().then(function(_instance) {
+		var listDom = $('.project-list');
+		listDom.html();
+		ProxyContract.deployed().then(function(_instance) {
 			instance = _instance;
 			return instance.getProjectCount();
 		}).then(function(value) {
+			console.log(value);
 			var count = value.valueOf();
+			console.log(count);
 			for(var i = 0; i < count; i++) {
-				instance.getProjectInfo(web3.toBigNumber(i)).then(function(name) {
-					console.log(name);
+				instance.getProjectInfo(web3.toBigNumber(i)).then(function(info) {
+					var index = parseInt(info[0]) + 1;
+					var html = "<tr data-id='" + info[0] + "'><th scope='row'>" + index + "</th><td>" + info[1] + "</td><td>" + info[2] + "</td><td>" + info[3].valueOf() + "</td><td>" + web3.fromWei(info[4].valueOf(), 'ether') + "</td><td>" + web3.fromWei(info[5].valueOf(), 'ether') + "</td><td>" + info[6].valueOf() + "</td></tr>";
+					listDom.append(html);
 				}).catch(function(e) {
 					console.log(e);
 					return;
@@ -74,12 +77,42 @@ window.App = {
 		var name = document.getElementById("name").value;
 		var addr = document.getElementById("address").value;
 		var ratio = parseInt(document.getElementById("ratio").value);
+		var least = parseInt(document.getElementById("least").value);
+		var limit = parseInt(document.getElementById("limit").value);
 
-		console.log(name);
-		ProxyICO.deployed().then(function(instance) {
-			return instance.addProject(name, addr, ratio, {from: address});
+		least = web3.toWei(least, 'ether');
+		limit = web3.toWei(limit, 'ether');
+
+		ProxyContract.deployed().then(function(instance) {
+			return instance.addProject(name, addr, ratio, least, limit, {from: address});
 		}).then(function() {
-			console.log("success");
+			$('.tip-content').text("success");
+			$('#tip').show();
+		}).catch(function(e) {
+			console.log(e);
+		});
+	},
+
+	// 买票上车
+	inviteProject: function() {
+		var index = parseInt(document.getElementById("index").value) - 1;
+
+		var value = parseInt(document.getElementById("value").value);
+		value = web3.toWei(value, 'ether');
+
+
+		ProxyContract.deployed().then(function(instance) {
+			return instance.investment(
+				web3.toBigNumber(index), 
+				{
+					from: address,
+					gas: 210000,
+  					gasPrice: 100000000000, 
+					value: value,
+				});
+		}).then(function() {
+			$('.tip-content').text("买票成功...");
+			$('#tip').show();
 		}).catch(function(e) {
 			console.log(e);
 		});
